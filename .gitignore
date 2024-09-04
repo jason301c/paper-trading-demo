@@ -22,3 +22,10 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+#SQLite
+*.sqlite
+*.db
+dev.db
+dev.db-journal
+prisma/migrations/*

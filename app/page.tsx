@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Header/>
-      <div className="container mx-auto p-8 min-h-screen max-w-screen-sm">
+      <div className="p-8 max-w-lg mx-auto">
 
         <h1 className="text-3xl font-bold text-gray-800 mb-5">Dashboard</h1>
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">

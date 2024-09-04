@@ -6,8 +6,8 @@ import Header from './components/Header';
 import { Stock } from './types/Stock';
 
 const mockPortfolio: Stock[] = [
-  { symbol: 'AAPL', totalShares: 10, currentValue: 150, profitLoss: 200 },
-  { symbol: 'GOOGL', totalShares: 5, currentValue: 2800, profitLoss: 500 },
+  { symbol: 'AAPL', totalShares: 10, currentValue: 150.66, profitLoss: 200.22},
+  { symbol: 'GOOGL', totalShares: 5, currentValue: 2800.66, profitLoss: 500.22},
   // Add more stocks as needed
 ];
 

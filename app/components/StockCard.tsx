@@ -6,19 +6,31 @@ interface StockCardProps {
   onClick: () => void;
 }
 
-const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => (
-  <div
-    className="bg-white shadow-md rounded-lg p-6 cursor-pointer hover:shadow-xl hover:scale-105 transition-transform duration-300 transform"
-    onClick={onClick}
-  >
-    <h2 className="text-2xl font-semibold mb-4 text-gray-800">{stock.symbol}</h2>
-    <p className="text-gray-500">Current Value: <span className="text-black font-bold">${stock.currentValue}</span></p>
-    <p className="text-gray-500">Total Shares: <span className="text-black font-bold">{stock.totalShares}</span></p>
-    <p className={`text-sm ${stock.profitLoss >= 0 ? 'text-green-500' : 'text-red-500'} font-semibold`}>
-      Profit/Loss: ${stock.profitLoss}
-    </p>
-  </div>
+const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
+  // Round every value to 2 decimal points
+  const currentValue = parseFloat(stock.currentValue.toFixed(2));
+  const profitLoss = parseFloat(stock.profitLoss.toFixed(2));
 
-);
+  return (
+    <div
+      className="bg-white shadow-md rounded-lg p-6 cursor-pointer hover:shadow-xl hover:scale-105 transition-transform duration-300 transform flex justify-between items-center border border-gray-300"
+      onClick={onClick}
+    >
+      {/* Left: Stock ticker */}
+      <div className="text-2xl font-bold text-gray-800 flex items-center h-full">
+        {stock.symbol}
+      </div>
+
+      {/* Right: Current price and PnL */}
+      <div className="text-right">
+        <p className="text-lg text-gray-800">{currentValue} USD</p>
+        <p className={`text-sm ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'} font-semibold`}>
+          {profitLoss >= 0 ? '+$' : '-$'}
+          {Math.abs(profitLoss)} ({stock.totalShares} shares)
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default StockCard;

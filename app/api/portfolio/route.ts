@@ -20,10 +20,10 @@ export async function POST(req: Request) {
 
   try {
     const newStock = await prisma.portfolio.create({
-      data: {
-        stockTicker: body.stockTicker,
-        averageBuyPrice: body.averageBuyPrice,
-        shareAmount: body.shareAmount,
+      data:{
+        symbol: body.symbol,
+        totalShares: body.totalShares,
+        averagePrice: body.averagePrice,
       },
     });
     return NextResponse.json(newStock);
@@ -39,10 +39,7 @@ export async function PUT(req: Request) {
   try {
     const updatedStock = await prisma.portfolio.update({
       where: { stockTicker: body.stockTicker },
-      data: {
-        averageBuyPrice: body.averageBuyPrice,
-        shareAmount: body.shareAmount,
-      },
+      data: body,
     });
     return NextResponse.json(updatedStock);
   } catch (error) {

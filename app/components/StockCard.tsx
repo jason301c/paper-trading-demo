@@ -8,8 +8,21 @@ interface StockCardProps {
 
 const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
   // Round every value to 2 decimal points
-  const currentValue = parseFloat(stock.currentValue.toFixed(2));
-  const profitLoss = parseFloat(stock.profitLoss.toFixed(2));
+  const [currentValue, setCurrentValue] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    // Fetch the current value of the stock from the API
+    fetch(`/api/market/${stock.symbol}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setCurrentValue(parseFloat(data.currentValue.toFixed(2)));
+      })
+      .catch((error) => {
+        console.error('Error fetching current value:', error);
+      });
+  }, [stock.symbol]);
+
+  const profitLoss = currentValue !== null ? currentValue - (stock.averagePrice * stock.totalShares) : 0;
 
   return (
     <div

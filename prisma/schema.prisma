@@ -9,9 +9,9 @@ datasource db {
 
 // PORTFOLIO table: Manages user's portfolio
 model Portfolio {
-  stockTicker      String  @id  // Primary key
-  averageBuyPrice  Float
-  shareAmount      Int
+  symbol           String  @id  // Primary key
+  totalShares      Float
+  averagePrice     Float
 }
 
 // MARKET table: Stores cached market data

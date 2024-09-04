@@ -8,8 +8,8 @@ import TotalValueCard from './components/TotalValueCard';
 import TotalProfitLossCard from './components/TotalProfitLossCard';
 
 const mockPortfolio: Stock[] = [
-  { symbol: 'AAPL', totalShares: 10, currentValue: 150.66, profitLoss: 200.22},
-  { symbol: 'GOOGL', totalShares: 5, currentValue: 2800.66, profitLoss: 500.22},
+  { symbol: 'AAPL', totalShares: 10, currentValue: 150.66, profitLoss: 200.22, averagePrice: 100.44 },
+  { symbol: 'GOOGL', totalShares: 5, currentValue: 2800.66, profitLoss: 500.22, averagePrice: 2500.44 },
   // Add more stocks as needed
 ];
 

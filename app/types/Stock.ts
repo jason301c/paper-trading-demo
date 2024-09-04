@@ -3,4 +3,5 @@ export interface Stock {
     totalShares: number;
     currentValue: number;
     profitLoss: number;
+    averagePrice: number;
   }

@@ -42,13 +42,17 @@ const Dashboard: React.FC = () => {
   return (
     <>
       <Header/>
-      <div className="container mx-auto p-8 min-h-screen">
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-10 h-24 mb-5">
+      <div className="container mx-auto p-8 min-h-screen max-w-screen-sm">
+
+        <h1 className="text-3xl font-bold text-gray-800 mb-5">Dashboard</h1>
+        <div className="grid grid-cols-2 gap-10 h-24 mb-5">
           <TotalValueCard totalValue={10000} />
           <TotalProfitLossCard profitLoss={500} />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <h1 className="text-3xl font-bold text-gray-800 mt-10">Portfolio</h1>
+        <p className="text-base text-gray-500 mb-5 mt-1">Click on a stock to sell it!</p>
+        <div className="grid grid-cols-1 gap-4">
           {portfolio.map(stock => (
             <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
           ))}

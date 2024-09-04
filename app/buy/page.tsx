@@ -24,54 +24,56 @@ export default function BuyPage() {
   };
 
   const handleBuy = () => {
-    // Call an API to save the purchase (in real application)
     console.log(`Buying ${quantity} of ${symbol} at ${stockInfo?.price}`);
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Buy Stocks</h1>
-      <div className="mb-4">
-        <label htmlFor="symbol" className="block font-medium">NASDAQ Symbol</label>
-        <input
-          type="text"
-          id="symbol"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-          className="border p-2 w-full"
-        />
-        <button
-          onClick={fetchStockInfo}
-          className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-        >
-          Fetch Price
-        </button>
-      </div>
-
-      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-
-      {stockInfo && (
-        <div>
-          <p>Price per share: ${stockInfo.price}</p>
-          <div className="mb-4">
-            <label htmlFor="quantity" className="block font-medium">Quantity</label>
-            <input
-              type="number"
-              id="quantity"
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
-              className="border p-2 w-full"
-            />
-          </div>
-          <p>Total Price: ${(quantity * stockInfo.price).toFixed(2)}</p>
+    <div className="p-8 max-w-lg mx-auto">
+      <h1 className="text-3xl font-bold mb-8 text-center">Buy Stocks</h1>
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <div className="mb-4">
+          <label htmlFor="symbol" className="block font-medium text-gray-600">NASDAQ Symbol</label>
+          <input
+            type="text"
+            id="symbol"
+            value={symbol}
+            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+            className="border p-2 w-full mt-2 rounded-lg"
+            placeholder="Enter stock symbol"
+          />
           <button
-            onClick={handleBuy}
-            className="bg-green-500 text-white px-4 py-2 rounded mt-4"
+            onClick={fetchStockInfo}
+            className="bg-blue-500 text-white px-4 py-2 rounded mt-4 w-full"
           >
-            Buy Shares
+            Fetch Price
           </button>
         </div>
-      )}
+
+        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+
+        {stockInfo && (
+          <div>
+            <p className="text-gray-600">Price per share: <span className="text-black">${stockInfo.price}</span></p>
+            <div className="mb-4">
+              <label htmlFor="quantity" className="block font-medium text-gray-600">Quantity</label>
+              <input
+                type="number"
+                id="quantity"
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="border p-2 w-full mt-2 rounded-lg"
+              />
+            </div>
+            <p className="text-gray-600">Total Price: <span className="text-black">${(quantity * stockInfo.price).toFixed(2)}</span></p>
+            <button
+              onClick={handleBuy}
+              className="bg-green-500 text-white px-4 py-2 rounded mt-4 w-full"
+            >
+              Buy Shares
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

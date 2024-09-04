@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StockCard from './components/StockCard';
 import SellModal from './components/SellModal';
 import Header from './components/Header';
@@ -7,16 +7,28 @@ import { Stock } from './types/Stock';
 import TotalValueCard from './components/TotalValueCard';
 import TotalProfitLossCard from './components/TotalProfitLossCard';
 
-const mockPortfolio: Stock[] = [
-  { symbol: 'AAPL', totalShares: 10, currentValue: 150.66, profitLoss: 200.22, averagePrice: 100.44 },
-  { symbol: 'GOOGL', totalShares: 5, currentValue: 2800.66, profitLoss: 500.22, averagePrice: 2500.44 },
-  // Add more stocks as needed
-];
-
 const Dashboard: React.FC = () => {
-  const [portfolio, setPortfolio] = useState<Stock[]>(mockPortfolio);
+  const [portfolio, setPortfolio] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [sellShares, setSellShares] = useState<number>(0);
+
+  // Fetch portfolio data from API
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      try {
+        const response = await fetch('/api/portfolio');
+        if (response.ok) {
+          const data = await response.json();
+          setPortfolio(data); // Populate state with portfolio from API
+        } else {
+          console.error('Failed to fetch portfolio');
+        }
+      } catch (error) {
+        console.error('Error fetching portfolio:', error);
+      }
+    };
+    fetchPortfolio();
+  }, []);
 
   const openSellModal = (stock: Stock) => {
     setSelectedStock(stock);
@@ -27,15 +39,42 @@ const Dashboard: React.FC = () => {
     setSelectedStock(null);
   };
 
-  const sellStock = () => {
+  // Sell stock and update the portfolio in the backend
+  const sellStock = async () => {
     if (selectedStock && sellShares > 0 && sellShares <= selectedStock.totalShares) {
-      const updatedPortfolio = portfolio.map(stock =>
-        stock.symbol === selectedStock.symbol
-          ? { ...stock, totalShares: stock.totalShares - sellShares }
-          : stock
-      );
-      setPortfolio(updatedPortfolio);
-      closeSellModal();
+      const updatedStock = {
+        ...selectedStock,
+        totalShares: selectedStock.totalShares - sellShares,
+      };
+
+      try {
+        // Send the updated stock data to the API
+        const response = await fetch('/api/portfolio', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            stockTicker: updatedStock.symbol,
+            totalShares: updatedStock.totalShares,
+            averageBuyPrice: updatedStock.averagePrice,
+          }),
+        });
+
+        if (response.ok) {
+          const updatedPortfolio = portfolio.map(stock =>
+            stock.symbol === selectedStock.symbol
+              ? { ...stock, totalShares: stock.totalShares - sellShares }
+              : stock
+          );
+          setPortfolio(updatedPortfolio); // Update state with the new portfolio
+          closeSellModal();
+        } else {
+          console.error('Failed to sell stock');
+        }
+      } catch (error) {
+        console.error('Error selling stock:', error);
+      }
     }
   };
 

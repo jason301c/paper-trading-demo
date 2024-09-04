@@ -40,28 +40,30 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-8 bg-gray-100 min-h-screen">
+    <>
       <Header/>
-      <div className="grid grid-cols-2 md:grid-cols-2 gap-10 h-24 mb-5">
-        <TotalValueCard totalValue={10000} />
-        <TotalProfitLossCard profitLoss={500} />
-      </div>
+      <div className="container mx-auto p-8 min-h-screen">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-10 h-24 mb-5">
+          <TotalValueCard totalValue={10000} />
+          <TotalProfitLossCard profitLoss={500} />
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {portfolio.map(stock => (
-          <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {portfolio.map(stock => (
+            <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
+          ))}
+        </div>
+        {selectedStock && (
+          <SellModal
+            stock={selectedStock}
+            sellShares={sellShares}
+            setSellShares={setSellShares}
+            sellStock={sellStock}
+            closeModal={closeSellModal}
+          />
+        )}
       </div>
-      {selectedStock && (
-        <SellModal
-          stock={selectedStock}
-          sellShares={sellShares}
-          setSellShares={setSellShares}
-          sellStock={sellStock}
-          closeModal={closeSellModal}
-        />
-      )}
-    </div>
+    </>
   );
 };
 

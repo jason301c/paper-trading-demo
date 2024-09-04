@@ -52,7 +52,7 @@ export default function BuyPage() {
         // Send a request to the portfolio API to add/update the stock
         const response = await axios.post('/api/portfolio', {
           stockTicker: stockInfo.symbol,
-          totalShares: quantity,
+          shareAmount: quantity,
           averageBuyPrice: stockInfo.price,
         });
 

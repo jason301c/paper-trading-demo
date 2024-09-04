@@ -29,3 +29,6 @@ yarn-error.log*
 dev.db
 dev.db-journal
 prisma/migrations/*
+
+# VSCode
+.vscode/

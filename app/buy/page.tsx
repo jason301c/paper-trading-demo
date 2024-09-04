@@ -25,8 +25,11 @@ export default function BuyPage() {
           const response = await axios.get(`/api/market/${symbol}`, {
             cancelToken: cancelTokenSource.token,
           });
-          setStockInfo({ symbol, price: response.data.stockPrice }); // Get price from market API
-          setErrorMessage(null);
+
+          if (response.status === 200) {
+            setStockInfo({ symbol, price: response.data.stockPrice }); // Get price from market API
+            setErrorMessage(null);
+          }
         } catch (error) {
           if (!axios.isCancel(error)) {
             setErrorMessage('Stock symbol not found.');

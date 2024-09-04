@@ -4,6 +4,8 @@ import StockCard from './components/StockCard';
 import SellModal from './components/SellModal';
 import Header from './components/Header';
 import { Stock } from './types/Stock';
+import TotalValueCard from './components/TotalValueCard';
+import TotalProfitLossCard from './components/TotalProfitLossCard';
 
 const mockPortfolio: Stock[] = [
   { symbol: 'AAPL', totalShares: 10, currentValue: 150.66, profitLoss: 200.22},
@@ -39,7 +41,12 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto p-8 bg-gray-100 min-h-screen">
-      <Header />
+      <Header/>
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-10 h-24 mb-5">
+        <TotalValueCard totalValue={10000} />
+        <TotalProfitLossCard profitLoss={500} />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {portfolio.map(stock => (
           <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />

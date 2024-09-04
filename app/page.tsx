@@ -1,4 +1,3 @@
-// pages/dashboard.tsx
 "use client";
 import { useState } from 'react';
 import StockCard from './components/StockCard';
@@ -39,9 +38,9 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-8 bg-gray-100 min-h-screen">
       <Header />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {portfolio.map(stock => (
           <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
         ))}

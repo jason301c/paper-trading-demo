@@ -1,39 +1,40 @@
 "use client";
-import { useState, useEffect } from 'react';
-import StockCard from '../components/StockCard';
-import SellModal from '../components/SellModal';
-import Header from '../components/Header';
-import { Stock } from '../lib/Stock';
-import TotalValueCard from '../components/TotalValueCard';
-import TotalProfitLossCard from '../components/TotalProfitLossCard';
+import { useState, useEffect } from "react";
+import StockCard from "../components/StockCard";
+import SellModal from "../components/SellModal";
+import Header from "../components/Header";
+import { Stock } from "../lib/Stock";
+import TotalValueCard from "../components/TotalValueCard";
+import TotalProfitLossCard from "../components/TotalProfitLossCard";
+import { Tables, TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
 
 const Dashboard: React.FC = () => {
   const [portfolio, setPortfolio] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [sellShares, setSellShares] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true); // For showing a loader if needed
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Fetch portfolio data from API
   const fetchPortfolio = async (useCache = true) => {
     try {
       // If cached data exists, use it to populate the portfolio first
-      const cachedPortfolio = localStorage.getItem('portfolio');
+      const cachedPortfolio = localStorage.getItem("portfolio");
       if (useCache && cachedPortfolio) {
         setPortfolio(JSON.parse(cachedPortfolio)); // Populate from cache
         setIsLoading(false); // We don't want to show loader anymore since data is available
       }
 
       // Now fetch the fresh portfolio data in the background
-      const response = await fetch('/api/portfolio');
+      const response = await fetch("/api/portfolio");
       if (response.ok) {
         const data = await response.json();
         setPortfolio(data); // Update state with fresh portfolio from API
-        localStorage.setItem('portfolio', JSON.stringify(data)); // Update the cache
+        localStorage.setItem("portfolio", JSON.stringify(data)); // Update the cache
       } else {
-        console.error('Failed to fetch portfolio');
+        console.error("Failed to fetch portfolio");
       }
     } catch (error) {
-      console.error('Error fetching portfolio:', error);
+      console.error("Error fetching portfolio:", error);
     } finally {
       setIsLoading(false);
     }
@@ -61,37 +62,40 @@ const Dashboard: React.FC = () => {
         totalShares: selectedStock.totalShares - sellShares,
       };
 
+      const requestBody: TablesUpdate<"portfolio"> = {
+        symbol: updatedStock.symbol,
+        totalShares: -sellShares, // Negative change for selling
+        averagePrice: updatedStock.averagePrice, // Use average price as the selling price
+      };
+
       try {
-        // Send the updated stock data to the API
-        const response = await fetch('/api/portfolio', {
-          method: 'PUT',
+        // Send the PATCH request to the API to update the portfolio
+        const response = await fetch("/api/portfolio", {
+          method: "PATCH",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            stockTicker: updatedStock.symbol,
-            totalShares: updatedStock.totalShares,
-            averagePrice: updatedStock.averagePrice,
-          }),
+          body: JSON.stringify(requestBody),
         });
 
         if (response.ok) {
-          const updatedPortfolio = portfolio.map(stock =>
+          const updatedPortfolio = portfolio.map((stock) =>
             stock.symbol === selectedStock.symbol
               ? { ...stock, totalShares: stock.totalShares - sellShares }
               : stock
           );
           setPortfolio(updatedPortfolio); // Update state with the new portfolio
-          localStorage.setItem('portfolio', JSON.stringify(updatedPortfolio)); // Update cache in localStorage
+          window.location.reload();
           closeSellModal();
         } else {
-          console.error('Failed to sell stock');
+          console.error("Failed to sell stock");
         }
       } catch (error) {
-        console.error('Error selling stock:', error);
+        console.error("Error selling stock:", error);
       }
     }
   };
+
 
   return (
     <>

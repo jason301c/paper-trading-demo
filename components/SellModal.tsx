@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stock } from '../types/Stock';
+import { Stock } from '../lib/Stock';
 
 interface SellModalProps {
   stock: Stock;

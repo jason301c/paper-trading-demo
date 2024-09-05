@@ -1,11 +1,11 @@
 "use client";
 import { useState, useEffect } from 'react';
-import StockCard from './components/StockCard';
-import SellModal from './components/SellModal';
-import Header from './components/Header';
-import { Stock } from './types/Stock';
-import TotalValueCard from './components/TotalValueCard';
-import TotalProfitLossCard from './components/TotalProfitLossCard';
+import StockCard from '../components/StockCard';
+import SellModal from '../components/SellModal';
+import Header from '../components/Header';
+import { Stock } from '../lib/Stock';
+import TotalValueCard from '../components/TotalValueCard';
+import TotalProfitLossCard from '../components/TotalProfitLossCard';
 
 const Dashboard: React.FC = () => {
   const [portfolio, setPortfolio] = useState<Stock[]>([]);

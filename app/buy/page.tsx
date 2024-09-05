@@ -4,26 +4,26 @@
   When the user clicks the "Buy Shares" button, a request is sent to the portfolio API to add the stock to the user's portfolio.
  */
 
-"use client"
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-import Header from '@/components/Header';
+"use client";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import Header from "@/components/Header";
+import type { TablesUpdate } from "@/lib/database.types";
 
 interface StockInfo {
   symbol: string;
   price: number;
 }
 
-
 export default function BuyPage() {
-  const [symbol, setSymbol] = useState<string>('');
+  const [symbol, setSymbol] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  /* Handle stock fetching from market API */
+  /* Stock market fetching */
   const fetchStockInfo = async () => {
     let cancelTokenSource = axios.CancelToken.source();
 
@@ -40,7 +40,7 @@ export default function BuyPage() {
         }
       } catch (error) {
         if (!axios.isCancel(error)) {
-          setErrorMessage('Stock symbol not found.');
+          setErrorMessage("Stock symbol not found.");
           setStockInfo(null);
         }
       }
@@ -51,36 +51,38 @@ export default function BuyPage() {
     };
   };
 
-  /* Handle buy button press and logic */
+  /* Handle buy button click */
   const handleBuy = async () => {
     if (stockInfo && quantity > 0) {
+      const requestBody: TablesUpdate<"portfolio"> = {
+        symbol: stockInfo.symbol,
+        averagePrice: stockInfo.price,
+        totalShares: quantity,
+      }
       try {
-        // Send a request to the portfolio API to add/update the stock
-        const response = await axios.post('/api/portfolio', {
-          symbol: stockInfo.symbol,
-          totalShares: quantity,
-          averagePrice: stockInfo.price,
-        });
+        // Send a PATCH request to the portfolio API to update or add the stock
+        const response = await axios.patch("/api/portfolio", requestBody);
 
         if (response.status === 200) {
           console.log(`Successfully bought ${quantity} shares of ${symbol}`);
-          router.push('/'); // Redirect to main page after successful purchase
+          router.push("/"); // Redirect to main page after successful purchase
         } else {
-          console.error('Error adding stock to portfolio');
+          console.error("Error adding stock to portfolio");
         }
       } catch (error) {
-        console.error('Error buying stock:', error);
+        console.error("Error buying stock:", error);
       }
+    } else {
+      setErrorMessage("Invalid quantity or stock information.");
     }
   };
 
   /* Handle fetching stock info when key is pressed */
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       fetchStockInfo(); // Fetch stock info when Enter is pressed
     }
   };
-
 
   return (
     <>
@@ -91,7 +93,9 @@ export default function BuyPage() {
 
           {/* Ticker Input */}
           <div className="flex flex-col">
-            <label htmlFor="symbol" className="block font-medium text-gray-800">NASDAQ Code</label>
+            <label htmlFor="symbol" className="block font-medium text-gray-800">
+              NASDAQ Code
+            </label>
             <input
               type="text"
               id="symbol"
@@ -101,7 +105,9 @@ export default function BuyPage() {
               className="border p-2 w-full mt-2 rounded-lg"
               placeholder="e.g. MSFT"
             />
-            <label className="block font-light text-sm text-gray-400 mt-1">Enter code and press Enter to get a quote.</label>
+            <label className="block font-light text-sm text-gray-400 mt-1">
+              Enter code and press Enter to get a quote.
+            </label>
           </div>
 
           {/* Quantity Input and Stock Price */}
@@ -133,7 +139,7 @@ export default function BuyPage() {
             <button
               onClick={handleBuy}
               className="bg-black text-white font-medium px-4 py-2 rounded w-full mt-2"
-              disabled={!stockInfo} // Disable button if no stock info is available
+              disabled={!stockInfo || quantity <= 0} // Disable button if no stock info or invalid quantity
             >
               Buy Shares
             </button>

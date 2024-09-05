@@ -1,5 +1,12 @@
-"use client";
+/*
+  This page allows users to buy stocks by entering a stock ticker and quantity.
+  The stock price is fetched from the market API and displayed to the user.
+  When the user clicks the "Buy Shares" button, a request is sent to the portfolio API to add the stock to the user's portfolio.
+ */
+
+"use client"
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Header from '@/components/Header';
 
@@ -8,44 +15,43 @@ interface StockInfo {
   price: number;
 }
 
+
 export default function BuyPage() {
   const [symbol, setSymbol] = useState<string>('');
   const [quantity, setQuantity] = useState<number>(1);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
 
-  // Fetch stock price from the market API
-  useEffect(() => {
+  /* Handle stock fetching from market API */
+  const fetchStockInfo = async () => {
     let cancelTokenSource = axios.CancelToken.source();
 
     if (symbol.length > 0) {
-      const fetchStockInfo = async () => {
-        try {
-          await new Promise((resolve) => setTimeout(resolve, 250)); // Add small delay
-          const response = await axios.get(`/api/market/${symbol}`, {
-            cancelToken: cancelTokenSource.token,
-          });
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 250)); // Add small delay
+        const response = await axios.get(`/api/market/${symbol}`, {
+          cancelToken: cancelTokenSource.token,
+        });
 
-          if (response.status === 200) {
-            setStockInfo({ symbol, price: response.data.stockPrice }); // Get price from market API
-            setErrorMessage(null);
-          }
-        } catch (error) {
-          if (!axios.isCancel(error)) {
-            setErrorMessage('Stock symbol not found.');
-            setStockInfo(null);
-          }
+        if (response.status === 200) {
+          setStockInfo({ symbol, price: response.data.stockPrice }); // Get price from market API
+          setErrorMessage(null);
         }
-      };
-      fetchStockInfo();
+      } catch (error) {
+        if (!axios.isCancel(error)) {
+          setErrorMessage('Stock symbol not found.');
+          setStockInfo(null);
+        }
+      }
     }
 
     return () => {
       cancelTokenSource.cancel();
     };
-  }, [symbol]);
+  };
 
-  // Handle the buying action
+  /* Handle buy button press and logic */
   const handleBuy = async () => {
     if (stockInfo && quantity > 0) {
       try {
@@ -58,6 +64,7 @@ export default function BuyPage() {
 
         if (response.status === 200) {
           console.log(`Successfully bought ${quantity} shares of ${symbol}`);
+          router.push('/'); // Redirect to main page after successful purchase
         } else {
           console.error('Error adding stock to portfolio');
         }
@@ -66,6 +73,14 @@ export default function BuyPage() {
       }
     }
   };
+
+  /* Handle fetching stock info when key is pressed */
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      fetchStockInfo(); // Fetch stock info when Enter is pressed
+    }
+  };
+
 
   return (
     <>
@@ -82,10 +97,11 @@ export default function BuyPage() {
               id="symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              onKeyPress={handleKeyPress} // Handle Enter key press
               className="border p-2 w-full mt-2 rounded-lg"
               placeholder="e.g. MSFT"
             />
-            <label className="block font-light text-sm text-gray-400 mt-1">Enter a symbol to get a quote.</label>
+            <label className="block font-light text-sm text-gray-400 mt-1">Enter code and press Enter to get a quote.</label>
           </div>
 
           {/* Quantity Input and Stock Price */}

@@ -71,7 +71,7 @@ const Dashboard: React.FC = () => {
           body: JSON.stringify({
             stockTicker: updatedStock.symbol,
             totalShares: updatedStock.totalShares,
-            averageBuyPrice: updatedStock.averagePrice,
+            averagePrice: updatedStock.averagePrice,
           }),
         });
 

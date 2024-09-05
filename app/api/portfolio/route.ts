@@ -83,7 +83,7 @@ export async function PUT(req: Request) {
     const { data: updatedStock, error } = await supabase
       .from('portfolio')
       .update(body)
-      .eq('stockTicker', body.stockTicker);
+      .eq('symbol', body.symbol);
 
     if (error) throw error;
     return NextResponse.json(updatedStock);
@@ -94,13 +94,13 @@ export async function PUT(req: Request) {
 
 // [DELETE] request: Remove a stock from the portfolio
 export async function DELETE(req: Request) {
-  const { stockTicker } = await req.json();
+  const { symbol } = await req.json();
 
   try {
     const { data: deletedStock, error } = await supabase
       .from('portfolio')
       .delete()
-      .eq('stockTicker', stockTicker);
+      .eq('symbol', symbol);
 
     if (error) throw error;
     return NextResponse.json(deletedStock);

@@ -9,7 +9,7 @@
 // Initialize Supabase client
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/Database';
+import { Database } from '@/lib/database.types';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PRIVATE_SUPABASE_SERVICE_KEY ?? '';
 const supabase = createClient<Database>(supabaseUrl!, supabaseKey!);

@@ -1,22 +1,23 @@
 /*
   app/api/portfolio/route.ts
-  This route handles all CRUD operations for the portfolio.
 */
 
-// Initialize Supabase client
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '@/lib/Database';
+import { Database, TablesUpdate } from '@/lib/database.types'; // Import types
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PRIVATE_SUPABASE_SERVICE_KEY ?? '';
 const supabase = createClient<Database>(supabaseUrl!, supabaseKey!);
 
-// [GET] request: Fetch all stocks in the portfolio
+/*
+  [GET] request: Fetch all stocks in the portfolio
+*/
 export async function GET() {
   try {
     const { data: portfolio, error } = await supabase
-    .from('portfolio')
-    .select('*');
+      .from('portfolio')
+      .select('*');
 
     if (error) throw error;
     return NextResponse.json(portfolio);
@@ -25,86 +26,85 @@ export async function GET() {
   }
 }
 
-// [POST] request: Add a stock to the portfolio
-export async function POST(req: Request) {
-  const body = await req.json();
-  const { symbol, totalShares, averagePrice } = body;
+/*
+  [PATCH] request: Increment or decrement totalShares in the portfolio
+  This endpoint allows you to increment or decrement shares.
+
+  Example body:
+  {
+    "symbol": "AAPL",
+    "totalShares": 5,
+    "averagePrice": 150
+  }
+  This would mean that you increase the total shares of AAPL by 5 at an price of $150.
+*/
+export async function PATCH(req: Request) {
+  const body = await req.json() as TablesUpdate<'portfolio'>;
+  const { symbol, averagePrice, totalShares } = body;
 
   try {
-    // Check if the stock already exists in the portfolio
+    // Ensure the required fields are present
+    if (!symbol || !averagePrice || !totalShares) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Fetch the existing stock in the portfolio
     const { data: existingStock, error: fetchError } = await supabase
       .from('portfolio')
       .select('*')
       .eq('symbol', symbol)
-      .single(); // Fetch only one record, as we are filtering by stock symbol
+      .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
-      // Throw an error if it's a fetch error other than "No rows found"
       throw fetchError;
     }
 
+    // If stock exists:
     if (existingStock) {
-      // If the stock exists, calculate the new total shares and average price
       const newTotalShares = existingStock.totalShares + totalShares;
-      const newAveragePrice =
-        (existingStock.totalShares * (existingStock.averagePrice || 0) + totalShares * averagePrice) /
-        newTotalShares;
 
-      // Update the existing stock in the portfolio
-      const { data: updatedStock, error: updateError } = await supabase
-        .from('portfolio')
-        .update({ totalShares: newTotalShares, averagePrice: newAveragePrice })
-        .eq('symbol', symbol);
+      // Error if the new total share amount is negative
+      if (newTotalShares < 0) {
+        return NextResponse.json({ error: 'Cannot have negative shares' }, { status: 400 });
+      }
 
-      if (updateError) throw updateError;
+      if (newTotalShares === 0) {
+        // STOCK DELETION CASE (totalShares === 0)
+        const { data: deletedStock, error: deleteError } = await supabase
+          .from('portfolio')
+          .delete()
+          .eq('symbol', symbol);
 
-      return NextResponse.json(updatedStock);
+        if (deleteError) throw deleteError;
+        return NextResponse.json(deletedStock);
+      } else {
+        // STOCK UPDATE CASE (totalShares > 0)
+        const newAveragePrice =
+        (existingStock.totalShares * (existingStock.averagePrice) + totalShares * averagePrice) /
+        (newTotalShares || 1); // Avoid division by zero
+
+        const { data: updatedStock, error: updateError } = await supabase
+          .from('portfolio')
+          .update({ totalShares: newTotalShares, averagePrice: newAveragePrice })
+          .eq('symbol', symbol);
+
+        if (updateError) throw updateError;
+        return NextResponse.json(updatedStock);
+      }
     } else {
-      // If the stock doesn't exist, insert a new stock into the portfolio
-      const { data: newStock, error: insertError } = await supabase
-        .from('portfolio')
-        .insert([{ symbol, totalShares, averagePrice }]);
+      // STOCK CREATION CASE (totalShares > 0, stock does not exist)
+      if (totalShares > 0) {
+        const { data: newStock, error: insertError } = await supabase
+          .from('portfolio')
+          .insert([{ symbol, totalShares: totalShares, averagePrice: averagePrice }]);
 
-      if (insertError) throw insertError;
-
-      return NextResponse.json(newStock);
+        if (insertError) throw insertError;
+        return NextResponse.json(newStock);
+      } else {
+        return NextResponse.json({ error: 'Stock does not exist to decrement' }, { status: 400 });
+      }
     }
   } catch (error) {
     return NextResponse.json({ error: 'Error processing stock transaction' }, { status: 500 });
-  }
-}
-
-
-// [PUT] request: Update a stock in the portfolio
-export async function PUT(req: Request) {
-  const body = await req.json();
-
-  try {
-    const { data: updatedStock, error } = await supabase
-      .from('portfolio')
-      .update(body)
-      .eq('symbol', body.symbol);
-
-    if (error) throw error;
-    return NextResponse.json(updatedStock);
-  } catch (error) {
-    return NextResponse.json({ error: 'Error updating stock in portfolio' }, { status: 500 });
-  }
-}
-
-// [DELETE] request: Remove a stock from the portfolio
-export async function DELETE(req: Request) {
-  const { symbol } = await req.json();
-
-  try {
-    const { data: deletedStock, error } = await supabase
-      .from('portfolio')
-      .delete()
-      .eq('symbol', symbol);
-
-    if (error) throw error;
-    return NextResponse.json(deletedStock);
-  } catch (error) {
-    return NextResponse.json({ error: 'Error deleting stock from portfolio' }, { status: 500 });
   }
 }

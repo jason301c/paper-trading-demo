@@ -28,24 +28,52 @@ export async function GET() {
 // [POST] request: Add a stock to the portfolio
 export async function POST(req: Request) {
   const body = await req.json();
+  const { symbol, totalShares, averagePrice } = body;
 
   try {
-    const { data: newStock, error } = await supabase
-    .from('portfolio')
-    .insert([
-      {
-        symbol: body.symbol,
-        totalShares: body.totalShares,
-        averagePrice: body.averagePrice,
-      },
-    ]);
+    // Check if the stock already exists in the portfolio
+    const { data: existingStock, error: fetchError } = await supabase
+      .from('portfolio')
+      .select('*')
+      .eq('symbol', symbol)
+      .single(); // Fetch only one record, as we are filtering by stock symbol
 
-    if (error) throw error;
-    return NextResponse.json(newStock);
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      // Throw an error if it's a fetch error other than "No rows found"
+      throw fetchError;
+    }
+
+    if (existingStock) {
+      // If the stock exists, calculate the new total shares and average price
+      const newTotalShares = existingStock.totalShares + totalShares;
+      const newAveragePrice =
+        (existingStock.totalShares * (existingStock.averagePrice || 0) + totalShares * averagePrice) /
+        newTotalShares;
+
+      // Update the existing stock in the portfolio
+      const { data: updatedStock, error: updateError } = await supabase
+        .from('portfolio')
+        .update({ totalShares: newTotalShares, averagePrice: newAveragePrice })
+        .eq('symbol', symbol);
+
+      if (updateError) throw updateError;
+
+      return NextResponse.json(updatedStock);
+    } else {
+      // If the stock doesn't exist, insert a new stock into the portfolio
+      const { data: newStock, error: insertError } = await supabase
+        .from('portfolio')
+        .insert([{ symbol, totalShares, averagePrice }]);
+
+      if (insertError) throw insertError;
+
+      return NextResponse.json(newStock);
+    }
   } catch (error) {
-    return NextResponse.json({ error: 'Error adding stock to portfolio' }, { status: 500 });
+    return NextResponse.json({ error: 'Error processing stock transaction' }, { status: 500 });
   }
 }
+
 
 // [PUT] request: Update a stock in the portfolio
 export async function PUT(req: Request) {

@@ -15,7 +15,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
     fetch(`/api/market/${stock.symbol}`)
       .then((response) => response.json())
       .then((data) => {
-        setCurrentValue(parseFloat(data.currentValue.toFixed(2)));
+        setCurrentValue(data.stockPrice);
       })
       .catch((error) => {
         console.error('Error fetching current value:', error);
@@ -36,7 +36,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
 
       {/* Right: Current price and PnL */}
       <div className="text-right">
-        <p className="text-lg text-gray-800">{currentValue} USD</p>
+        <p className="text-lg text-gray-800">{(currentValue || 0) * stock.totalShares} USD</p>
         <p className={`text-sm ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'} font-semibold`}>
           {profitLoss >= 0 ? '+$' : '-$'}
           {Math.abs(profitLoss)} ({stock.totalShares} shares)

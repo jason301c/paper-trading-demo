@@ -1,16 +1,22 @@
-// /app/api/portfolio/route.ts
-import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+/*
+  app/api/portfolio/route.ts
+  This route handles all CRUD operations for the portfolio.
+*/
 
 // Initialize Supabase client
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/lib/Database';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PRIVATE_SUPABASE_SERVICE_KEY ?? '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient<Database>(supabaseUrl!, supabaseKey!);
 
-// GET request: Fetch all stocks in the portfolio
+// [GET] request: Fetch all stocks in the portfolio
 export async function GET() {
   try {
-    const { data: portfolio, error } = await supabase.from('portfolio').select('*');
+    const { data: portfolio, error } = await supabase
+    .from('portfolio')
+    .select('*');
 
     if (error) throw error;
     return NextResponse.json(portfolio);
@@ -19,12 +25,14 @@ export async function GET() {
   }
 }
 
-// POST request: Add a stock to the portfolio
+// [POST] request: Add a stock to the portfolio
 export async function POST(req: Request) {
   const body = await req.json();
 
   try {
-    const { data: newStock, error } = await supabase.from('portfolio').insert([
+    const { data: newStock, error } = await supabase
+    .from('portfolio')
+    .insert([
       {
         symbol: body.symbol,
         totalShares: body.totalShares,
@@ -39,7 +47,7 @@ export async function POST(req: Request) {
   }
 }
 
-// PUT request: Update a stock in the portfolio
+// [PUT] request: Update a stock in the portfolio
 export async function PUT(req: Request) {
   const body = await req.json();
 
@@ -56,7 +64,7 @@ export async function PUT(req: Request) {
   }
 }
 
-// DELETE request: Remove a stock from the portfolio
+// [DELETE] request: Remove a stock from the portfolio
 export async function DELETE(req: Request) {
   const { stockTicker } = await req.json();
 

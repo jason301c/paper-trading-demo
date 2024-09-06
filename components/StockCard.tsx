@@ -22,7 +22,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
       });
   }, [stock.symbol]);
 
-  const profitLoss = currentValue !== null ? currentValue - (stock.averagePrice * stock.totalShares) : 0;
+  const profitLoss = currentValue !== null ? ((currentValue - stock.averagePrice) * stock.totalShares) : 0;
 
   return (
     <div
@@ -36,7 +36,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
 
       {/* Right: Current price and PnL */}
       <div className="text-right">
-        <p className="text-lg text-gray-800">{(currentValue || 0) * stock.totalShares} USD</p>
+        <p className="text-lg text-gray-800">{(currentValue || 0)} USD</p>
         <p className={`text-sm ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'} font-semibold`}>
           {profitLoss >= 0 ? '+$' : '-$'}
           {Math.abs(profitLoss)} ({stock.totalShares} shares)

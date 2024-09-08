@@ -19,6 +19,8 @@ const Dashboard: React.FC = () => {
   const [totalValue, setTotalValue] = useState<number>(0);
   const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
   const [isPortfolioLoaded, setIsPortfolioLoaded] = useState<boolean>(false);
+  const [isDashboardLoaded, setIsDashboardLoaded] = useState<boolean>(false);
+
 
   /* Fetch portfolio and currnet price from API */
   const fetchPortfolio = async () => {
@@ -31,6 +33,7 @@ const Dashboard: React.FC = () => {
         const portfolioData = response.data; // Fetch portfolio data
         // Set the updated portfolio
         setPortfolio(portfolioData);
+
       } else {
         console.error("Failed to fetch portfolio");
       }
@@ -40,22 +43,25 @@ const Dashboard: React.FC = () => {
       setIsLoading(false); // Hide loader
     }
 
-    // Calculate dashboard information
-    let valueSum = 0;
-    let pnlSum = 0;
-
-    portfolio.forEach(stock => {
-      const stockValue = stock.totalShares * stock.lastKnownPrice; // Calculate total value of each stock
-      const stockPnL = stock.totalShares * (stock.lastKnownPrice - stock.averagePrice); // Calculate PnL for each stock
-      valueSum += stockValue;
-      pnlSum += stockPnL;
-    });
-
-    setTotalValue(valueSum);
-    setTotalProfitLoss(pnlSum);
-
     setIsPortfolioLoaded(true); // Portfolio is fully loaded
   };
+
+  /* Calculate total value and profit/loss */
+  useEffect(() => {
+      let valueSum = 0;
+      let pnlSum = 0;
+
+      portfolio.forEach(stock => {
+        const stockValue = stock.totalShares * stock.lastKnownPrice; // Calculate total value of each stock
+        const stockPnL = stock.totalShares * (stock.lastKnownPrice - stock.averagePrice); // Calculate PnL for each stock
+        valueSum += stockValue;
+        pnlSum += stockPnL;
+      });
+
+      setTotalValue(valueSum);
+      setTotalProfitLoss(pnlSum);
+      setIsDashboardLoaded(true);
+  }, [portfolio, isPortfolioLoaded]);
 
   /* Fetch portfolio on mount */
   useEffect(() => {
@@ -132,7 +138,7 @@ const Dashboard: React.FC = () => {
 
         {/* Conditionally render the value and PnL cards */}
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">
-          {isPortfolioLoaded ? (
+          {isDashboardLoaded ? (
             <>
               <TotalValueCard totalValue={totalValue} />
               <TotalProfitLossCard profitLoss={totalProfitLoss} />

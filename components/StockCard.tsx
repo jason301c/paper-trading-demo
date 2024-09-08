@@ -1,7 +1,11 @@
 import { Tables } from '@/lib/database.types';
 import React from 'react';
 
-const StockCard: React.FC<Tables<'portfolio'>> = (stock, onClick) => {
+interface StockCardProps {
+  stock: Tables<'portfolio'>;
+  onClick: () => void;
+}
+const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
 
   const profitLoss = stock.lastKnownPrice !== null ? ((stock.lastKnownPrice - stock.averagePrice) * stock.totalShares) : 0;
 

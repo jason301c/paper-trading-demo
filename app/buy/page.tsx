@@ -1,5 +1,3 @@
-
-
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -28,10 +26,6 @@ export default function BuyPage() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
-  let fetchTimeout: NodeJS.Timeout | null = null;
-
-  /* Constant Vars*/
-  const SYMBOL_FETCH_DELAY = 200;
 
   /* Handles stock market fetching */
   const fetchStockInfo = async (symbol: string) => {
@@ -41,10 +35,9 @@ export default function BuyPage() {
       const response = await axios.get(`/api/market/${symbol}`); // Fetching from API
 
       if (response.status === 200) {
-        setStockInfo({ symbol, price: response.data.stockPrice }); 
+        setStockInfo({ symbol, price: response.data.stockPrice });
         setErrorMessage(null);
       }
-
     } catch (error) {
       setErrorMessage("Stock symbol not found.");
       setStockInfo(null);
@@ -53,24 +46,12 @@ export default function BuyPage() {
     }
   };
 
-
-  /* Handle symbol input change with debounce */
-  useEffect(() => {
-    if (symbol.length > 0) {
-      if (fetchTimeout) {
-        clearTimeout(fetchTimeout); // Clear the timeout if the symbol changes before 150ms
-      }
-
-      fetchTimeout = setTimeout(() => {
-        fetchStockInfo(symbol); // Fetch stock info after delay
-      }, SYMBOL_FETCH_DELAY);
+  /* Handle symbol input change and listen for "Enter" key */
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter" && symbol.length > 0) {
+      fetchStockInfo(symbol);
     }
-
-    return () => {
-      if (fetchTimeout) clearTimeout(fetchTimeout); // Clean up timeout on component unmount
-    };
-  }, [symbol]); // Call useEffect whenever the symbol changes
-
+  };
 
   /* Handle buy button click */
   const handleBuy = async () => {
@@ -104,7 +85,6 @@ export default function BuyPage() {
     }
   };
 
-
   return (
     <>
       {/* Loader */}
@@ -130,11 +110,12 @@ export default function BuyPage() {
               id="symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              onKeyDown={handleKeyPress} // Add event listener for Enter key
               className="border p-2 w-full mt-2 rounded-lg"
               placeholder="e.g. MSFT"
             />
             <label className="block font-light text-sm text-gray-400 mt-1">
-              Enter code and wait for the quote to update automatically.
+              Enter code and press "Enter" to fetch the stock price.
             </label>
           </div>
 

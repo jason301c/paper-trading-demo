@@ -17,24 +17,53 @@ const Dashboard: React.FC = () => {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [sellShares, setSellShares] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [totalValue, setTotalValue] = useState<number>(0);
+  const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
+  const [isPortfolioLoaded, setIsPortfolioLoaded] = useState<boolean>(false);
+  const [isDashboardLoaded, setIsDashboardLoaded] = useState<boolean>(false);
 
-  /* Fetch portfolio from API */
+
+  /* Fetch the current stock price from the market API */
+  const fetchCurrentValue = async (symbol: string) => {
+    try {
+      const response = await axios.get(`/api/market/${symbol}`); // Fetching from API
+
+      if (response.status === 200) {
+        return response.data.stockPrice;
+      }
+
+    } catch (error) {
+      console.error("Stock symbol not found.");
+    };
+  };
+
+  /* Fetch portfolio and currnet price from API */
   const fetchPortfolio = async () => {
     try {
       setIsLoading(true); // Loading
       // Fetching
-      const response = await fetch("/api/portfolio");
+      const response = await axios.get("/api/portfolio");
       // Response handling
-      if (response.ok) {
-        const data = await response.json();
-        setPortfolio(data); // Update state with fresh portfolio from API
+      if (response.status === 200) {
+        const portfolioData = response.data; // Fetch portfolio data
+        // Add currentvalue to each stock object
+        const updatedPortfolio = await Promise.all(
+          portfolioData.map(async (stock: Stock) => {
+            const currentPrice = await fetchCurrentValue(stock.symbol);
+            return { ...stock, currentPrice }; // Add current price to each stock object
+          })
+        );
+        // Set the updated portfolio
+        setPortfolio(updatedPortfolio);
+        setIsPortfolioLoaded(true); // Portfolio is fully loaded
       } else {
         console.error("Failed to fetch portfolio");
       }
     } catch (error) {
       console.error("Error fetching portfolio:", error);
     } finally {
-      setIsLoading(false); // Hide loading
+      setIsLoading(false); // Hide loader
+      setIsPortfolioLoaded(true); // Portfolio is fully loaded
     }
   };
 
@@ -42,6 +71,30 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchPortfolio();
   }, []);
+
+  /* Calculate total value and PnL */
+  const calculatePortfolioSummary = (portfolio: Stock[]) => {
+    let valueSum = 0;
+    let pnlSum = 0;
+
+    portfolio.forEach(stock => {
+      const stockValue = stock.totalShares * stock.currentPrice; // Calculate total value of each stock
+      const stockPnL = stock.totalShares * (stock.currentPrice - stock.averagePrice); // Calculate PnL for each stock
+      valueSum += stockValue;
+      pnlSum += stockPnL;
+    });
+
+    setTotalValue(valueSum);
+    setTotalProfitLoss(pnlSum);
+    setIsDashboardLoaded(true);
+  };
+
+  /* Calculate total value and PnL */
+  useEffect(() => {
+    if (isPortfolioLoaded) {
+      calculatePortfolioSummary(portfolio);
+    }
+  }, [isPortfolioLoaded, portfolio]);
 
   /* Open the sell modal */
   const openSellModal = (stock: Stock) => {
@@ -110,11 +163,17 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        {/* Dashboard Upper Content */}
-        <h1 className="text-3xl font-bold text-gray-800 mb-5">Dashboard</h1>
+
+        {/* Conditionally render the value and PnL cards */}
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">
-          <TotalValueCard totalValue={10000} />
-          <TotalProfitLossCard profitLoss={500} />
+          {isDashboardLoaded ? (
+            <>
+              <TotalValueCard totalValue={totalValue} />
+              <TotalProfitLossCard profitLoss={totalProfitLoss} />
+            </>
+          ) : (
+            <p>Loading portfolio data...</p>
+          )}
         </div>
 
         {/* Portfolio */}
@@ -141,5 +200,4 @@ const Dashboard: React.FC = () => {
     </>
   );
 };
-
 export default Dashboard;

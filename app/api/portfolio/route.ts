@@ -1,11 +1,14 @@
 /*
-  app/api/portfolio/route.ts
+This route fetches stock data from the Portfolio table based on the stock ticker.
 */
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+
+/* Custom imports */
 import { Database, TablesUpdate } from '@/lib/database.types'; // Import types
 
+// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PRIVATE_SUPABASE_SERVICE_KEY ?? '';
 const supabase = createClient<Database>(supabaseUrl!, supabaseKey!);

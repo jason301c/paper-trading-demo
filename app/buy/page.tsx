@@ -1,100 +1,116 @@
-/*
-  This page allows users to buy stocks by entering a stock ticker and quantity.
-  The stock price is fetched from the market API and displayed to the user.
-  When the user clicks the "Buy Shares" button, a request is sent to the portfolio API to add the stock to the user's portfolio.
- */
+
 
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import axios from "axios";
-import Loader from "@/components/Loader"; // Import the Loader component
-import type { TablesUpdate } from "@/lib/database.types";
-import { motion } from "framer-motion"; // Import framer-motion
 
+/* Custom imports */
+import Loader from "@/components/Loader";
+import type { TablesUpdate } from "@/lib/database.types";
+
+/* Interface for information needed */
 interface StockInfo {
   symbol: string;
   price: number;
 }
 
+/*
+  This page allows users to buy stocks by entering a stock ticker and quantity.
+  The stock price is fetched from the market API and displayed to the user.
+  When the user clicks the "Buy Shares" button, a request is sent to the portfolio API to add the stock to the user's portfolio.
+ */
 export default function BuyPage() {
   const [symbol, setSymbol] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
+  let fetchTimeout: NodeJS.Timeout | null = null;
 
-  /* Stock market fetching */
-  const fetchStockInfo = async () => {
-    let cancelTokenSource = axios.CancelToken.source();
-    setIsLoading(true); // Set loading to true when fetching data
+  /* Constant Vars*/
+  const SYMBOL_FETCH_DELAY = 200;
 
-    if (symbol.length > 0) {
-      try {
-        await new Promise((resolve) => setTimeout(resolve, 250)); // Add small delay
-        const response = await axios.get(`/api/market/${symbol}`, {
-          cancelToken: cancelTokenSource.token,
-        });
+  /* Handles stock market fetching */
+  const fetchStockInfo = async (symbol: string) => {
+    setIsLoading(true); // Loading
 
-        if (response.status === 200) {
-          setStockInfo({ symbol, price: response.data.stockPrice }); // Get price from market API
-          setErrorMessage(null);
-        }
-      } catch (error) {
-        if (!axios.isCancel(error)) {
-          setErrorMessage("Stock symbol not found.");
-          setStockInfo(null);
-        }
-      } finally {
-        setIsLoading(false); // Set loading to false after fetching data
+    try {
+      const response = await axios.get(`/api/market/${symbol}`); // Fetching from API
+
+      if (response.status === 200) {
+        setStockInfo({ symbol, price: response.data.stockPrice }); 
+        setErrorMessage(null);
       }
+
+    } catch (error) {
+      setErrorMessage("Stock symbol not found.");
+      setStockInfo(null);
+    } finally {
+      setIsLoading(false); // Loading
+    }
+  };
+
+
+  /* Handle symbol input change with debounce */
+  useEffect(() => {
+    if (symbol.length > 0) {
+      if (fetchTimeout) {
+        clearTimeout(fetchTimeout); // Clear the timeout if the symbol changes before 150ms
+      }
+
+      fetchTimeout = setTimeout(() => {
+        fetchStockInfo(symbol); // Fetch stock info after delay
+      }, SYMBOL_FETCH_DELAY);
     }
 
     return () => {
-      cancelTokenSource.cancel();
+      if (fetchTimeout) clearTimeout(fetchTimeout); // Clean up timeout on component unmount
     };
-  };
+  }, [symbol]); // Call useEffect whenever the symbol changes
+
 
   /* Handle buy button click */
   const handleBuy = async () => {
     if (stockInfo && quantity > 0) {
+      // Construct a request body to perform the buy
       const requestBody: TablesUpdate<"portfolio"> = {
         symbol: stockInfo.symbol,
         averagePrice: stockInfo.price,
         totalShares: quantity,
       };
       try {
-        setIsLoading(true); // Show loader when buying stock
-        // Send a PATCH request to the portfolio API to update or add the stock
+        setIsLoading(true); // Loading
+
+        // Send the request
         const response = await axios.patch("/api/portfolio", requestBody);
 
+        // Response handling
         if (response.status === 200) {
           console.log(`Successfully bought ${quantity} shares of ${symbol}`);
-          router.push("/"); // Redirect to main page after successful purchase
+          router.push("/"); // Redirect to main page
         } else {
           console.error("Error adding stock to portfolio");
         }
       } catch (error) {
         console.error("Error buying stock:", error);
       } finally {
-        setIsLoading(false); // Hide loader after API call is done
+        setIsLoading(false); // Hide loader
       }
     } else {
       setErrorMessage("Invalid quantity or stock information.");
     }
   };
 
-  /* Handle fetching stock info when key is pressed */
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      fetchStockInfo(); // Fetch stock info when Enter is pressed
-    }
-  };
 
   return (
     <>
-      {isLoading && <Loader />} {/* Display loader when loading */}
+      {/* Loader */}
+      {isLoading && <Loader />}
+
+      {/* Opening animation */}
       <motion.div
         className="p-8 max-w-lg mx-auto"
         initial={{ opacity: 0, y: 20 }}
@@ -114,12 +130,11 @@ export default function BuyPage() {
               id="symbol"
               value={symbol}
               onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              onKeyPress={handleKeyPress} // Handle Enter key press
               className="border p-2 w-full mt-2 rounded-lg"
               placeholder="e.g. MSFT"
             />
             <label className="block font-light text-sm text-gray-400 mt-1">
-              Enter code and press Enter to get a quote.
+              Enter code and wait for the quote to update automatically.
             </label>
           </div>
 

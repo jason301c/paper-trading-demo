@@ -39,7 +39,7 @@ const StockCard: React.FC<StockCardProps> = ({ stock, onClick }) => {
         <p className="text-lg text-gray-800">{(currentValue || 0)} USD</p>
         <p className={`text-sm ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'} font-semibold`}>
           {profitLoss >= 0 ? '+$' : '-$'}
-          {Math.abs(profitLoss)} ({stock.totalShares} shares)
+          {Math.abs(profitLoss).toFixed(2)} ({stock.totalShares} shares)
         </p>
       </div>
     </div>

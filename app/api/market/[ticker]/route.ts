@@ -6,15 +6,20 @@
   TODO: Implement fetching stock data from online APIs with proper caching
 */
 
-// Initialize Supabase client
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+
+/* Custom imports */
 import { Database } from '@/lib/database.types';
+
+// Initialize Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 const supabaseKey = process.env.NEXT_PRIVATE_SUPABASE_SERVICE_KEY ?? '';
 const supabase = createClient<Database>(supabaseUrl!, supabaseKey!);
 
-// [GET] request: Fetch stock data from the Market table based on stock ticker
+/*
+  [GET] request: Fetch stock data from the Market table based on stock ticker
+*/
 export async function GET(req: Request, { params }: { params: { ticker: string } }) {
   const { ticker } = params;
 

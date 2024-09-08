@@ -1,11 +1,12 @@
-// components/Loader.tsx
 import React from 'react';
 
+/*
+Loader component
+*/
 const Loader: React.FC = () => {
   return (
     <div className="fixed inset-0 bg-white bg-opacity-50 flex justify-center items-center z-50">
       <div className="loader"></div>
-
       {/* Loading spinner */}
       <style jsx>{`
         .loader {

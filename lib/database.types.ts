@@ -9,18 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      balance: {
-        Row: {
-          balance: number
-        }
-        Insert: {
-          balance?: number
-        }
-        Update: {
-          balance?: number
-        }
-        Relationships: []
-      }
       market: {
         Row: {
           stockPrice: number
@@ -42,16 +30,19 @@ export type Database = {
       portfolio: {
         Row: {
           averagePrice: number
+          lastKnownPrice: number
           symbol: string
           totalShares: number
         }
         Insert: {
-          averagePrice?: number
+          averagePrice: number
+          lastKnownPrice?: number
           symbol: string
           totalShares: number
         }
         Update: {
           averagePrice?: number
+          lastKnownPrice?: number
           symbol?: string
           totalShares?: number
         }

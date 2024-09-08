@@ -1,4 +1,5 @@
 /*
+app/api/portfolio/route.ts
 This route fetches stock data from the Portfolio table based on the stock ticker.
 */
 
@@ -43,7 +44,7 @@ export async function GET() {
 */
 export async function PATCH(req: Request) {
   const body = await req.json() as TablesUpdate<'portfolio'>;
-  const { symbol, averagePrice, totalShares } = body;
+  const { symbol, averagePrice, totalShares, lastKnownPrice } = body;
 
   try {
     // Ensure the required fields are present
@@ -88,7 +89,7 @@ export async function PATCH(req: Request) {
 
         const { data: updatedStock, error: updateError } = await supabase
           .from('portfolio')
-          .update({ totalShares: newTotalShares, averagePrice: newAveragePrice })
+          .update({ totalShares: newTotalShares, averagePrice: newAveragePrice, lastKnownPrice: averagePrice })
           .eq('symbol', symbol);
 
         if (updateError) throw updateError;
@@ -99,7 +100,7 @@ export async function PATCH(req: Request) {
       if (totalShares > 0) {
         const { data: newStock, error: insertError } = await supabase
           .from('portfolio')
-          .insert([{ symbol, totalShares: totalShares, averagePrice: averagePrice }]);
+          .insert([{ symbol, totalShares: totalShares, averagePrice: averagePrice, lastKnownPrice: averagePrice }]);
 
         if (insertError) throw insertError;
         return NextResponse.json(newStock);

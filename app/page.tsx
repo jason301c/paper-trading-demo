@@ -99,7 +99,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
-      <Header />
       <motion.div
         className="p-8 max-w-lg mx-auto"
         initial={{ opacity: 0, y: 20 }}

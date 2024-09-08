@@ -8,7 +8,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import Header from "@/components/Header";
+import Loader from "@/components/Loader"; // Import the Loader component
 import type { TablesUpdate } from "@/lib/database.types";
 import { motion } from "framer-motion"; // Import framer-motion
 
@@ -21,12 +21,14 @@ export default function BuyPage() {
   const [symbol, setSymbol] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Loading state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
   /* Stock market fetching */
   const fetchStockInfo = async () => {
     let cancelTokenSource = axios.CancelToken.source();
+    setIsLoading(true); // Set loading to true when fetching data
 
     if (symbol.length > 0) {
       try {
@@ -44,6 +46,8 @@ export default function BuyPage() {
           setErrorMessage("Stock symbol not found.");
           setStockInfo(null);
         }
+      } finally {
+        setIsLoading(false); // Set loading to false after fetching data
       }
     }
 
@@ -61,6 +65,7 @@ export default function BuyPage() {
         totalShares: quantity,
       };
       try {
+        setIsLoading(true); // Show loader when buying stock
         // Send a PATCH request to the portfolio API to update or add the stock
         const response = await axios.patch("/api/portfolio", requestBody);
 
@@ -72,6 +77,8 @@ export default function BuyPage() {
         }
       } catch (error) {
         console.error("Error buying stock:", error);
+      } finally {
+        setIsLoading(false); // Hide loader after API call is done
       }
     } else {
       setErrorMessage("Invalid quantity or stock information.");
@@ -87,6 +94,7 @@ export default function BuyPage() {
 
   return (
     <>
+      {isLoading && <Loader />} {/* Display loader when loading */}
       <motion.div
         className="p-8 max-w-lg mx-auto"
         initial={{ opacity: 0, y: 20 }}

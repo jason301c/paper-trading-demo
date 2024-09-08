@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import StockCard from "../components/StockCard";
 import SellModal from "../components/SellModal";
-import Header from "../components/Header";
+import Loader from '@/components/Loader';
 import { Stock } from "../lib/Stock";
 import TotalValueCard from "../components/TotalValueCard";
 import TotalProfitLossCard from "../components/TotalProfitLossCard";
@@ -13,24 +13,17 @@ const Dashboard: React.FC = () => {
   const [portfolio, setPortfolio] = useState<Stock[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [sellShares, setSellShares] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Fetch portfolio data from API
-  const fetchPortfolio = async (useCache = true) => {
+  const fetchPortfolio = async () => {
     try {
-      // If cached data exists, use it to populate the portfolio first
-      const cachedPortfolio = localStorage.getItem("portfolio");
-      if (useCache && cachedPortfolio) {
-        setPortfolio(JSON.parse(cachedPortfolio)); // Populate from cache
-        setIsLoading(false); // We don't want to show loader anymore since data is available
-      }
-
+      setIsLoading(true);
       // Now fetch the fresh portfolio data in the background
       const response = await fetch("/api/portfolio");
       if (response.ok) {
         const data = await response.json();
         setPortfolio(data); // Update state with fresh portfolio from API
-        localStorage.setItem("portfolio", JSON.stringify(data)); // Update the cache
       } else {
         console.error("Failed to fetch portfolio");
       }
@@ -99,6 +92,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <>
+      {isLoading && <Loader />}
       <motion.div
         className="p-8 max-w-lg mx-auto"
         initial={{ opacity: 0, y: 20 }}

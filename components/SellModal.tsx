@@ -1,25 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Stock } from '../lib/Stock';
+import Loader from '@/components/Loader'; // Import the loader component
 import { motion } from 'framer-motion'; 
 
 interface SellModalProps {
   stock: Stock;
   sellShares: number;
   setSellShares: (shares: number) => void;
-  sellStock: () => void;
+  sellStock: () => Promise<void>; // Modified to support async function for loader
   closeModal: () => void;
 }
 
 const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares, sellStock, closeModal }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Manage loading state
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSellShares(value === ' ' ? 0 : Number(value));
   };
 
+  const handleSellStock = async () => {
+    try {
+      setIsLoading(true); // Set loading to true when selling stock
+      await sellStock(); // Execute the stock selling operation
+      closeModal(); // Close the modal after successful sell
+    } catch (error) {
+      console.error('Error selling stock:', error);
+    } finally {
+      setIsLoading(false); // Set loading to false after operation
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-sm">
-      {/* Motion.div for the modal with animation */}
+      {isLoading && <Loader />} {/* Display loader when loading */}
       <motion.div
         className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative"
         initial={{ opacity: 0, scale: 0.8 }} 
@@ -54,7 +68,7 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
             Cancel
           </button>
           <button
-            onClick={sellStock}
+            onClick={handleSellStock} // Call the handler to sell the stock
             className="bg-black hover:bg-red-500 text-white font-bold py-2 px-4 rounded transition-colors"
           >
             Sell Shares

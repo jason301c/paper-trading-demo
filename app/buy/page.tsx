@@ -72,6 +72,8 @@ export default function BuyPage() {
         if (response.status === 200) {
           console.log(`Successfully bought ${quantity} shares of ${symbol}`);
           router.push("/"); // Redirect to main page
+        } else if (response.status === 429) {
+          setErrorMessage("You have exceeded the rate limit. Please try again later");
         } else {
           console.error("Error adding stock to portfolio");
         }

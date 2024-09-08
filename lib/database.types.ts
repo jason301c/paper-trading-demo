@@ -25,17 +25,17 @@ export type Database = {
         Row: {
           stockPrice: number
           stockTicker: string
-          timeoOfUpdate: string | null
+          timeOfUpdate: string | null
         }
         Insert: {
           stockPrice: number
           stockTicker: string
-          timeoOfUpdate?: string | null
+          timeOfUpdate?: string | null
         }
         Update: {
           stockPrice?: number
           stockTicker?: string
-          timeoOfUpdate?: string | null
+          timeOfUpdate?: string | null
         }
         Relationships: []
       }

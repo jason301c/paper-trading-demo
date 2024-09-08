@@ -1,5 +1,6 @@
 import React from 'react';
 import { Stock } from '../lib/Stock';
+import { motion } from 'framer-motion'; 
 
 interface SellModalProps {
   stock: Stock;
@@ -18,7 +19,14 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-sm">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative">
+      {/* Motion.div for the modal with animation */}
+      <motion.div
+        className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative"
+        initial={{ opacity: 0, scale: 0.8 }} 
+        animate={{ opacity: 1, scale: 1 }} 
+        exit={{ opacity: 0, scale: 0.8 }} 
+        transition={{ duration: 0.1, ease: 'easeInOut' }} 
+      >
         <button
           onClick={closeModal}
           className="absolute top-6 right-6 text-gray-500 hover:text-gray-800"
@@ -52,7 +60,7 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
             Sell Shares
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

@@ -7,35 +7,18 @@ import axios from "axios";
 /* Custom Imports */
 import StockCard from "../components/StockCard";
 import SellModal from "../components/SellModal";
-import { Stock } from "../lib/Stock";
 import TotalValueCard from "../components/TotalValueCard";
 import TotalProfitLossCard from "../components/TotalProfitLossCard";
-import { TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
+import { Tables, TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
 
 const Dashboard: React.FC = () => {
-  const [portfolio, setPortfolio] = useState<Stock[]>([]);
-  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [portfolio, setPortfolio] = useState<Tables<'portfolio'>[]>([]);
+  const [selectedStock, setSelectedStock] = useState<Tables<'portfolio'> | null>(null);
   const [sellShares, setSellShares] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [totalValue, setTotalValue] = useState<number>(0);
   const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
   const [isPortfolioLoaded, setIsPortfolioLoaded] = useState<boolean>(false);
-  const [isDashboardLoaded, setIsDashboardLoaded] = useState<boolean>(false);
-
-
-  /* Fetch the current stock price from the market API */
-  const fetchCurrentValue = async (symbol: string) => {
-    try {
-      const response = await axios.get(`/api/market/${symbol}`); // Fetching from API
-
-      if (response.status === 200) {
-        return response.data.stockPrice;
-      }
-
-    } catch (error) {
-      console.error("Stock symbol not found.");
-    };
-  };
 
   /* Fetch portfolio and currnet price from API */
   const fetchPortfolio = async () => {
@@ -46,16 +29,8 @@ const Dashboard: React.FC = () => {
       // Response handling
       if (response.status === 200) {
         const portfolioData = response.data; // Fetch portfolio data
-        // Add currentvalue to each stock object
-        const updatedPortfolio = await Promise.all(
-          portfolioData.map(async (stock: Stock) => {
-            const currentPrice = await fetchCurrentValue(stock.symbol);
-            return { ...stock, currentPrice }; // Add current price to each stock object
-          })
-        );
         // Set the updated portfolio
-        setPortfolio(updatedPortfolio);
-        setIsPortfolioLoaded(true); // Portfolio is fully loaded
+        setPortfolio(portfolioData);
       } else {
         console.error("Failed to fetch portfolio");
       }
@@ -63,8 +38,23 @@ const Dashboard: React.FC = () => {
       console.error("Error fetching portfolio:", error);
     } finally {
       setIsLoading(false); // Hide loader
-      setIsPortfolioLoaded(true); // Portfolio is fully loaded
     }
+
+    // Calculate dashboard information
+    let valueSum = 0;
+    let pnlSum = 0;
+
+    portfolio.forEach(stock => {
+      const stockValue = stock.totalShares * stock.lastKnownPrice; // Calculate total value of each stock
+      const stockPnL = stock.totalShares * (stock.lastKnownPrice - stock.averagePrice); // Calculate PnL for each stock
+      valueSum += stockValue;
+      pnlSum += stockPnL;
+    });
+
+    setTotalValue(valueSum);
+    setTotalProfitLoss(pnlSum);
+
+    setIsPortfolioLoaded(true); // Portfolio is fully loaded
   };
 
   /* Fetch portfolio on mount */
@@ -72,32 +62,8 @@ const Dashboard: React.FC = () => {
     fetchPortfolio();
   }, []);
 
-  /* Calculate total value and PnL */
-  const calculatePortfolioSummary = (portfolio: Stock[]) => {
-    let valueSum = 0;
-    let pnlSum = 0;
-
-    portfolio.forEach(stock => {
-      const stockValue = stock.totalShares * stock.currentPrice; // Calculate total value of each stock
-      const stockPnL = stock.totalShares * (stock.currentPrice - stock.averagePrice); // Calculate PnL for each stock
-      valueSum += stockValue;
-      pnlSum += stockPnL;
-    });
-
-    setTotalValue(valueSum);
-    setTotalProfitLoss(pnlSum);
-    setIsDashboardLoaded(true);
-  };
-
-  /* Calculate total value and PnL */
-  useEffect(() => {
-    if (isPortfolioLoaded) {
-      calculatePortfolioSummary(portfolio);
-    }
-  }, [isPortfolioLoaded, portfolio]);
-
   /* Open the sell modal */
-  const openSellModal = (stock: Stock) => {
+  const openSellModal = (stock: Tables<'portfolio'>) => {
     setSelectedStock(stock);
     setSellShares(0);
   };
@@ -166,7 +132,7 @@ const Dashboard: React.FC = () => {
 
         {/* Conditionally render the value and PnL cards */}
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">
-          {isDashboardLoaded ? (
+          {isPortfolioLoaded ? (
             <>
               <TotalValueCard totalValue={totalValue} />
               <TotalProfitLossCard profitLoss={totalProfitLoss} />
@@ -182,7 +148,7 @@ const Dashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4">
           {portfolio.map((stock) => (
-            <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
+            <StockCard stock = {stock} onClick={() => openSellModal(stock)} />
           ))}
         </div>
 

@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Header from "@/components/Header";
 import type { TablesUpdate } from "@/lib/database.types";
+import { motion } from "framer-motion"; // Import framer-motion
 
 interface StockInfo {
   symbol: string;
@@ -58,7 +59,7 @@ export default function BuyPage() {
         symbol: stockInfo.symbol,
         averagePrice: stockInfo.price,
         totalShares: quantity,
-      }
+      };
       try {
         // Send a PATCH request to the portfolio API to update or add the stock
         const response = await axios.patch("/api/portfolio", requestBody);
@@ -87,7 +88,12 @@ export default function BuyPage() {
   return (
     <>
       <Header />
-      <div className="p-8 max-w-lg mx-auto">
+      <motion.div
+        className="p-8 max-w-lg mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
         <div className="bg-white rounded-lg p-6 space-y-6">
           <h1 className="text-3xl font-bold text-gray-800">Buy Stocks</h1>
 
@@ -146,7 +152,7 @@ export default function BuyPage() {
             {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
           </div>
         </div>
-      </div>
+      </motion.div>
     </>
   );
 }

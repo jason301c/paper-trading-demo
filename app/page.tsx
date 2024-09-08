@@ -6,7 +6,8 @@ import Header from "../components/Header";
 import { Stock } from "../lib/Stock";
 import TotalValueCard from "../components/TotalValueCard";
 import TotalProfitLossCard from "../components/TotalProfitLossCard";
-import { Tables, TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
+import { TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
+import { motion } from "framer-motion"; // Import framer-motion
 
 const Dashboard: React.FC = () => {
   const [portfolio, setPortfolio] = useState<Stock[]>([]);
@@ -96,11 +97,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
-
   return (
     <>
-      <Header/>
-      <div className="p-8 max-w-lg mx-auto">
+      <Header />
+      <motion.div
+        className="p-8 max-w-lg mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
         <h1 className="text-3xl font-bold text-gray-800 mb-5">Dashboard</h1>
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">
           <TotalValueCard totalValue={10000} />
@@ -114,7 +119,7 @@ const Dashboard: React.FC = () => {
           <p>Loading portfolio...</p> // Show loading message
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {portfolio.map(stock => (
+            {portfolio.map((stock) => (
               <StockCard key={stock.symbol} stock={stock} onClick={() => openSellModal(stock)} />
             ))}
           </div>
@@ -129,7 +134,7 @@ const Dashboard: React.FC = () => {
             closeModal={closeSellModal}
           />
         )}
-      </div>
+      </motion.div>
     </>
   );
 };

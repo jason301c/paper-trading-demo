@@ -156,11 +156,15 @@ const Dashboard: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-800 mt-10">Portfolio</h1>
         <p className="text-base text-gray-500 mb-5 mt-1">Click on a stock to sell it!</p>
 
-        <div className="grid grid-cols-1 gap-4">
-          {portfolio.map((stock) => (
-            <StockCard stock={stock} onClick={() => openSellModal(stock)} />
-          ))}
-        </div>
+        {portfolio.length === 0 ? (
+          <p className="text-center text-gray-400 mt-10">Your portfolio is currently empty.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {portfolio.map((stock) => (
+              <StockCard stock={stock} onClick={() => openSellModal(stock)} key={stock.symbol} />
+            ))}
+          </div>
+        )}
 
         {/* Sell Modal */}
         {selectedStock && (

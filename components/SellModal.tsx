@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Loader from '@/components/Loader'; // Import the loader component
 import { motion } from 'framer-motion';
 import { Tables } from '@/lib/database.types';
-import Notification from '@/components/Notification'; // Import the notification component
 
 /*
 Properties of the Sell Modal
@@ -13,13 +12,12 @@ interface SellModalProps {
   setSellShares: (shares: number) => void;
   sellStock: () => Promise<void>; // Modified to support async function for loader
   closeModal: () => void;
-  setNotificationMessage: (message: string) => void; // New prop to set notification message
 }
 
 /*
 Sell Modal component, which handles selling of stocks
 */
-const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares, sellStock, closeModal, setNotificationMessage }) => {
+const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares, sellStock, closeModal}) => {
   const [isLoading, setIsLoading] = useState<boolean>(false); // Manage loading state
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +29,6 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
     try {
       setIsLoading(true); // Set loading to true when selling stock
       await sellStock(); // Execute the stock selling operation
-      setNotificationMessage(`Sold ${sellShares} stocks for ${sellShares * stock.averagePrice}$`); // Set notification message
       closeModal(); // Close the modal after successful sell
     } catch (error) {
       console.error('Error selling stock:', error);

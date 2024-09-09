@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { Stock } from '../lib/Stock';
 import Loader from '@/components/Loader'; // Import the loader component
 import { motion, AnimatePresence } from 'framer-motion';
+import { Tables } from '@/lib/database.types';
 
 /*
 Properties of the Sell Modal
 */
 interface SellModalProps {
-  stock: Stock;
+  stock: Tables<'portfolio'>;
   sellShares: number;
   setSellShares: (shares: number) => void;
   sellStock: () => Promise<void>; // Modified to support async function for loader
@@ -44,7 +44,7 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-sm">
       {isLoading && <Loader />} {/* Display loader when loading */}
-      
+
       {/* Notification */}
       <AnimatePresence>
         {notification && (

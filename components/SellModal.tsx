@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Loader from '@/components/Loader'; // Import the loader component
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Tables } from '@/lib/database.types';
+import Notification from '@/components/Notification'; // Import the notification component
 
 /*
 Properties of the Sell Modal
@@ -12,15 +13,14 @@ interface SellModalProps {
   setSellShares: (shares: number) => void;
   sellStock: () => Promise<void>; // Modified to support async function for loader
   closeModal: () => void;
+  setNotificationMessage: (message: string) => void; // New prop to set notification message
 }
 
 /*
 Sell Modal component, which handles selling of stocks
 */
-const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares, sellStock, closeModal }) => {
+const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares, sellStock, closeModal, setNotificationMessage }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false); // Manage loading state
-  const [notification, setNotification] = useState<string | null>(null); // Manage notification state
-
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -31,8 +31,7 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
     try {
       setIsLoading(true); // Set loading to true when selling stock
       await sellStock(); // Execute the stock selling operation
-      setNotification(`Successfully sold ${sellShares} shares of ${stock.symbol}`); // Show success notification
-      setTimeout(() => setNotification(null), 3000); // Hide after 3 seconds
+      setNotificationMessage(`Sold ${sellShares} stocks for ${sellShares * stock.averagePrice}$`); // Set notification message
       closeModal(); // Close the modal after successful sell
     } catch (error) {
       console.error('Error selling stock:', error);
@@ -44,21 +43,6 @@ const SellModal: React.FC<SellModalProps> = ({ stock, sellShares, setSellShares,
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center z-50 backdrop-filter backdrop-blur-sm">
       {isLoading && <Loader />} {/* Display loader when loading */}
-
-      {/* Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div
-            className="fixed top-6 bg-green-500 text-white py-2 px-4 rounded shadow-md z-50"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            {notification}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <motion.div
         className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full relative"

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Loader from '@/components/Loader';
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // Added AnimatePresence for notification animation
 import axios from "axios";
 
 /* Custom Imports */
@@ -9,6 +9,7 @@ import StockCard from "../components/StockCard";
 import SellModal from "../components/SellModal";
 import TotalValueCard from "../components/TotalValueCard";
 import TotalProfitLossCard from "../components/TotalProfitLossCard";
+import Notification from "../components/Notification"; // Import the Notification component
 import { Tables, TablesUpdate } from "@/lib/database.types"; // Import Supabase's Database type
 
 const Dashboard: React.FC = () => {
@@ -20,47 +21,42 @@ const Dashboard: React.FC = () => {
   const [totalProfitLoss, setTotalProfitLoss] = useState<number>(0);
   const [isPortfolioLoaded, setIsPortfolioLoaded] = useState<boolean>(false);
   const [isDashboardLoaded, setIsDashboardLoaded] = useState<boolean>(false);
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null); // For displaying notification
 
-
-  /* Fetch portfolio and currnet price from API */
+  /* Fetch portfolio and current price from API */
   const fetchPortfolio = async () => {
     try {
       setIsLoading(true); // Loading
-      // Fetching
       const response = await axios.get("/api/portfolio");
-      // Response handling
       if (response.status === 200) {
-        const portfolioData = response.data; // Fetch portfolio data
-        // Set the updated portfolio
+        const portfolioData = response.data;
         setPortfolio(portfolioData);
-
       } else {
         console.error("Failed to fetch portfolio");
       }
     } catch (error) {
       console.error("Error fetching portfolio:", error);
     } finally {
-      setIsLoading(false); // Hide loader
+      setIsLoading(false);
     }
-
-    setIsPortfolioLoaded(true); // Portfolio is fully loaded
+    setIsPortfolioLoaded(true);
   };
 
   /* Calculate total value and profit/loss */
   useEffect(() => {
-      let valueSum = 0;
-      let pnlSum = 0;
+    let valueSum = 0;
+    let pnlSum = 0;
 
-      portfolio.forEach(stock => {
-        const stockValue = stock.totalShares * stock.lastKnownPrice; // Calculate total value of each stock
-        const stockPnL = stock.totalShares * (stock.lastKnownPrice - stock.averagePrice); // Calculate PnL for each stock
-        valueSum += stockValue;
-        pnlSum += stockPnL;
-      });
+    portfolio.forEach((stock) => {
+      const stockValue = stock.totalShares * stock.lastKnownPrice;
+      const stockPnL = stock.totalShares * (stock.lastKnownPrice - stock.averagePrice);
+      valueSum += stockValue;
+      pnlSum += stockPnL;
+    });
 
-      setTotalValue(valueSum);
-      setTotalProfitLoss(pnlSum);
-      setIsDashboardLoaded(true);
+    setTotalValue(valueSum);
+    setTotalProfitLoss(pnlSum);
+    setIsDashboardLoaded(true);
   }, [portfolio, isPortfolioLoaded]);
 
   /* Fetch portfolio on mount */
@@ -80,45 +76,44 @@ const Dashboard: React.FC = () => {
   };
 
   /* Handling the selling of stocks */
-  /* Called when the user presses the sell button */
   const sellStock = async () => {
     if (selectedStock && sellShares > 0 && sellShares <= selectedStock.totalShares) {
-      // Loading
       setIsLoading(true);
-      // Stock with totalShares updated
       const updatedStock = {
         ...selectedStock,
         totalShares: selectedStock.totalShares - sellShares,
       };
 
-      // Construct request body for request
       const requestBody: TablesUpdate<"portfolio"> = {
         symbol: updatedStock.symbol,
         totalShares: -sellShares, // Negative change for selling
-        averagePrice: updatedStock.averagePrice, // Use average price as the selling price
+        averagePrice: updatedStock.averagePrice,
       };
 
       try {
-        // Send the PATCH request to the API to update the portfolio
         const response = await axios.patch("/api/portfolio", requestBody);
 
-        // Response handling
         if (response.status === 200) {
+          // Update the portfolio in the state without reloading
           const updatedPortfolio = portfolio.map((stock) =>
             stock.symbol === selectedStock.symbol
               ? { ...stock, totalShares: stock.totalShares - sellShares }
               : stock
-          );
-          setPortfolio(updatedPortfolio); // Update state with the new portfolio
+          ).filter(stock => stock.totalShares > 0); // Remove stock if no shares are left
+
+          setPortfolio(updatedPortfolio); // Update the portfolio state
+
           closeSellModal();
-          window.location.reload();
+
+          // Show notification
+          setNotificationMessage(`Sold ${sellShares} shares of ${selectedStock.symbol} for $${(sellShares * selectedStock.lastKnownPrice).toFixed(2)}`);
         } else {
           console.error("Failed to sell stock");
         }
       } catch (error) {
         console.error("Error selling stock:", error);
       } finally {
-        setIsLoading(false); // Hide loader
+        setIsLoading(false);
       }
     }
   };
@@ -128,6 +123,18 @@ const Dashboard: React.FC = () => {
       {/* Loader */}
       {isLoading && <Loader />}
 
+      {/* Notification Container */}
+      <div className="flex justify-center items-center h-16 mb-4 relative">
+        <AnimatePresence>
+          {notificationMessage && (
+            <Notification
+              message={notificationMessage}
+              onClose={() => setNotificationMessage(null)}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+      
       {/* Dashboard Animation */}
       <motion.div
         className="p-8 max-w-lg mx-auto"
@@ -135,8 +142,7 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-
-        {/* Conditionally render the value and PnL cards */}
+        {/* Total Value and Profit/Loss */}
         <div className="grid grid-cols-2 gap-10 h-24 mb-5">
           {isDashboardLoaded ? (
             <>
@@ -154,7 +160,7 @@ const Dashboard: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4">
           {portfolio.map((stock) => (
-            <StockCard stock = {stock} onClick={() => openSellModal(stock)} />
+            <StockCard stock={stock} onClick={() => openSellModal(stock)} />
           ))}
         </div>
 
@@ -172,4 +178,5 @@ const Dashboard: React.FC = () => {
     </>
   );
 };
+
 export default Dashboard;

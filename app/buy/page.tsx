@@ -1,11 +1,12 @@
+
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion"; // Import AnimatePresence for notification
 import axios from "axios";
 
 /* Custom imports */
 import Loader from "@/components/Loader";
+import Notification from "@/components/Notification"; // Import the Notification component
 import type { TablesUpdate } from "@/lib/database.types";
 
 /* Interface for information needed */
@@ -25,7 +26,7 @@ export default function BuyPage() {
   const [stockInfo, setStockInfo] = useState<StockInfo | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const router = useRouter();
+  const [notificationMessage, setNotificationMessage] = useState<string | null>(null); // For notification
 
   /* Handles stock market fetching */
   const fetchStockInfo = async (symbol: string) => {
@@ -71,7 +72,8 @@ export default function BuyPage() {
         // Response handling
         if (response.status === 200) {
           console.log(`Successfully bought ${quantity} shares of ${symbol}`);
-          router.push("/"); // Redirect to main page
+          // Trigger notification
+          setNotificationMessage(`Successfully bought ${quantity} shares of ${stockInfo.symbol}`);
         } else if (response.status === 429) {
           setErrorMessage("You have exceeded the rate limit. Please try again later");
         } else {
@@ -91,6 +93,16 @@ export default function BuyPage() {
     <>
       {/* Loader */}
       {isLoading && <Loader />}
+
+      {/* Notification */}
+      <AnimatePresence>
+        {notificationMessage && (
+            <Notification
+              message={notificationMessage}
+              onClose={() => setNotificationMessage(null)}
+            />
+        )}
+        </AnimatePresence>
 
       {/* Opening animation */}
       <motion.div

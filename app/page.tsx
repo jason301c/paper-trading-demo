@@ -123,18 +123,16 @@ const Dashboard: React.FC = () => {
       {/* Loader */}
       {isLoading && <Loader />}
 
-      {/* Notification Container */}
-      <div className="flex justify-center items-center h-16 mb-4 relative">
-        <AnimatePresence>
-          {notificationMessage && (
-            <Notification
-              message={notificationMessage}
-              onClose={() => setNotificationMessage(null)}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-      
+      {/* Notification */}
+      <AnimatePresence>
+        {notificationMessage && (
+          <Notification
+            message={notificationMessage}
+            onClose={() => setNotificationMessage(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Dashboard Animation */}
       <motion.div
         className="p-8 max-w-lg mx-auto"
